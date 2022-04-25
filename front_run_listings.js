@@ -1,7 +1,5 @@
 const axios = require("axios");
-const { parse } = require("dotenv");
 require("dotenv").config({path: "../.env"});
-const { stream } = require("xlsx");
 
 const twitterAccounts = [
     { name: "Coinbase", id: "574032254" },
