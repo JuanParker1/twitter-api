@@ -1,6 +1,6 @@
 const axios = require("axios");
-require("dotenv").config({path: "../.env"});
 const needle = require("needle");
+require("dotenv").config({path: "../.env"});
 
 const twitterAccounts = [
     { name: "Coinbase", id: "574032254" },
@@ -17,12 +17,34 @@ async function sleep(seconds) {
     return new Promise(resolve => setTimeout(resolve, seconds * 60 * 1000));
 }
 
-//using the old system, takes about 7-8 seconds to get the new tweet, which isn't bad, but also not great
+//***************method-1***************
+
+async function getNewTweets() {
+    while (true) {
+        var time = (new Date((Math.round(Date.now()-60000)))).toISOString();
+        time = time.substring(0, 13) + "%3A" + time.substring(14, 16) + "%3A" + time.substring(17, 19)  + "Z";
+        const url = `https://api.twitter.com/2/users/969707094357237761/tweets?exclude=replies%2Cretweets&start_time=${time}`;
+        var tweets = await axios.get(url, {
+            headers: {
+            Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`
+            }
+        });
+        if (tweets && tweets.data) {
+            console.log(tweets.data.data);
+        }
+        sleep(1);
+    }
+}
+
+//getNewTweets();
+
+
+//***************method-2***************
 
 const rulesURL = "https://api.twitter.com/2/tweets/search/stream/rules";
 const streamURL = "https://api.twitter.com/2/tweets/search/stream?tweet.fields=public_metrics&expansions=author_id";
 
-const rules = [{ value: "giveaway" }];
+const rules = [{ value: "from: kaan_548" }];
 
 // Get stream rules
 async function getRules() {
@@ -65,7 +87,7 @@ async function deleteRules(rules) {
         },
     };
 
-    const response = await needle('post', rulesURL, data, {
+    const response = await needle("post", rulesURL, data, {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`,
@@ -92,5 +114,3 @@ function streamTweets() {
     return stream;
     
 }
-
-streamTweets();
